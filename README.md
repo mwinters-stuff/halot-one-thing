@@ -2,7 +2,7 @@
 Program to make the halot-one range of creality 3d printers more openly accessable.
 
 
-Work based on (creality-remote-control) [https://github.com/danielkucera/creality-remote-control/]
+Work based on [creality-remote-control](https://github.com/danielkucera/creality-remote-control/)
 
 Also working on wiresharking the websocket protocol to find more features.
 
@@ -17,5 +17,5 @@ Include and not limited to.
 
 # Other stuff
 
-See (here)[https://www.winters.nz/halot-one/logging-in/] to see how to login to your halot-one.
+See [here](https://www.winters.nz/halot-one/logging-in/) to see how to login to your halot-one.
 See future document - on how to install syncthing on your halot-one to upload files to printer eaisly.
