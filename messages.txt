@@ -1,0 +1,41 @@
+-> is messages sent to printer
+<- is message received in response from printer..
+
+
+
+-> {"cmd":"VERSION_CHECK"}
+<- {"version":"1"}
+
+-> {"cmd":"GET_PRINT_STATUS","token":"kz4M32rFVvI="}
+<- {"bottomExposureNum":"","cmd":"GET_PRINT_STATUS","curSliceLayer":"","delayLight":"","eleSpeed":"","filename":"","initExposure":"","layerThickness":"","printExposure":"","printHeight":"","printRemainTime":"","printStatus":"PRINT_GENERAL","resin":"","sliceLayerCount":""}
+
+
+-> {"cmd":"START_FILE","filename":"Frog.cxdlp","key":"19ebcf3c","offset":"0","size":"538539"}
+<- {"cmd":"START_FILE","compress":true,"filename":"Frog.cxdlp","key":"19ebcf3c","offset":"0","size":"538539"}
+
+<- {"cmd":"START_DATA","errorcode":0,"key":"19ebcf3c","received":"538539","size":"538539"}
+<- {"checkstate":1,"cmd":"CHECK_DATA","key":"19ebcf3c"}
+
+
+
+-> {"cmd":"START_PRINT","filename":"Frog.cxdlp","token":"kz4M32rFVvI="}
+<- {"cmd":"START_PRINT","filename":"Frog.cxdlp","status":"CHECKING"}
+<- {"cmd":"START_PRINT","filename":"Frog.cxdlp","status":"STARTED"}
+
+
+
+-> {"cmd":"GET_PRINT_STATUS","token":"kz4M32rFVvI="}
+<- {"bottomExposureNum":"2","cmd":"GET_PRINT_STATUS","curSliceLayer":"0","delayLight":"4","eleSpeed":"1","filename":"Frog.cxdlp","initExposure":"40","layerThickness":"0.050000","printExposure":"3","printHeight":"6","printRemainTime":"1304","printStatus":"PRINT_PROCESSING","resin":"","sliceLayerCount":"67"}
+
+-> {"bottomExposureNum":"2","cmd":"PRINT_PARA_SET","delayLight":"4","eleSpeed":"2","initExposure":"40","printExposure":"3","printHeight":"6","token":"kz4M32rFVvI="}
+<- {"cmd":"PRINT_PARA_SET","status":""}
+
+-> {"cmd":"PRINT_STOP","token":"kz4M32rFVvI="}
+<- {"cmd":"PRINT_STOP","status":"PRINT_STOP"}
+
+-> {"cmd":"GET_PRINT_STATUS","token":"kz4M32rFVvI="}
+<- {"bottomExposureNum":"2","cmd":"GET_PRINT_STATUS","curSliceLayer":"0","delayLight":"4","eleSpeed":"2","filename":"Frog.cxdlp","initExposure":"40","layerThickness":"0.050000","printExposure":"3","printHeight":"6","printRemainTime":"980","printStatus":"PRINT_END","resin":"","sliceLayerCount":"67"}
+
+
+Request: OPTIONS rtsp://192.168.1.53:554/ch0_0 RTSP/1.0\r\n
+
