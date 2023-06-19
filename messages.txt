@@ -33,9 +33,21 @@
 -> {"cmd":"PRINT_STOP","token":"kz4M32rFVvI="}
 <- {"cmd":"PRINT_STOP","status":"PRINT_STOP"}
 
+-> {"cmd":"PRINT_PAUSE","token":"kz4M32rFVvI="}
+<- {"cmd":"PRINT_PAUSE","status":"PRINT_STOP"}
+<- {"bottomExposureNum":"2","cmd":"GET_PRINT_STATUS","curSliceLayer":"0","delayLight":"1","eleSpeed":"1","filename":"Frog.cxdlp","initExposure":"40","layerThickness":"0.050000","printExposure":"3","printHeight":"6","printRemainTime":"790","printStatus":"PRINT_STOP","resin":"","sliceLayerCount":"43"}
+
+-> {"cmd":"PRINT_STOP","token":"kz4M32rFVvI="}
+<- {"cmd":"PRINT_STOP","status":"PRINT_STOP"}
+
 -> {"cmd":"GET_PRINT_STATUS","token":"kz4M32rFVvI="}
 <- {"bottomExposureNum":"2","cmd":"GET_PRINT_STATUS","curSliceLayer":"0","delayLight":"4","eleSpeed":"2","filename":"Frog.cxdlp","initExposure":"40","layerThickness":"0.050000","printExposure":"3","printHeight":"6","printRemainTime":"980","printStatus":"PRINT_END","resin":"","sliceLayerCount":"67"}
 
+-> {"cmd":"PRINT_STOP","token":"kz4M32rFVvI="}
+<- {"cmd":"PRINT_STOP","status":"GET_PRINT_STATUS"}
+
+-> {"cmd":"GET_PRINT_STATUS","token":"kz4M32rFVvI="}
+<- {"bottomExposureNum":"2","cmd":"GET_PRINT_STATUS","curSliceLayer":"0","delayLight":"1","eleSpeed":"1","filename":"Frog.cxdlp","initExposure":"40","layerThickness":"0.050000","printExposure":"3","printHeight":"6","printRemainTime":"790","printStatus":"PRINT_END","resin":"","sliceLayerCount":"43"}
 
 Request: OPTIONS rtsp://192.168.1.53:554/ch0_0 RTSP/1.0\r\n
 

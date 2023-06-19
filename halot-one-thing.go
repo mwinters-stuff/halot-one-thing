@@ -1,8 +1,10 @@
 package main
 
 import (
+	"errors"
 	"fmt"
 	"log"
+	"time"
 
 	"crypto/des"
 	"encoding/base64"
@@ -51,10 +53,36 @@ func sendData(conn *websocket.Conn, data []byte) {
 	fmt.Printf("wrote %d\n", n)
 }
 
+func getVersion(ws *websocket.Conn) {
+	data, err := json.Marshal(jsontypes.MessageCommand{Cmd: "GET_VERSION"})
+	if err != nil {
+		panic(err)
+	}
+	sendData(ws, data)
+
+	var msg = make([]byte, 100)
+	var n int
+	if n, err = ws.Read(msg); err != nil {
+		log.Fatal(err)
+	}
+
+	var versionMessage jsontypes.VersionIncoming
+	if versionMessage, err = jsontypes.UnmarshalVersionIncomingMessage(msg[:n]); err != nil {
+		log.Fatal(err)
+	}
+
+	fmt.Printf("Received Version: %s.\n", versionMessage.Version)
+
+	if versionMessage.Version != "1" {
+		log.Fatal(errors.New(fmt.Sprintf("can no use version %s", versionMessage.Version)))
+	}
+
+}
+
 func getStatus(conn *websocket.Conn, token string) {
 	msg := jsontypes.OutgoingMessage{
-		Cmd:   "GET_PRINT_STATUS",
-		Token: token,
+		Token:          token,
+		MessageCommand: jsontypes.MessageCommand{Cmd: "GET_PRINT_STATUS"},
 	}
 
 	data, err := json.Marshal(msg)
@@ -64,21 +92,21 @@ func getStatus(conn *websocket.Conn, token string) {
 	sendData(conn, data)
 }
 
-func startFile(conn *websocket.Conn, token string, filename string) {
-	msg := jsontypes.StartFileMessage{
-		Cmd:      "START_FILE",
-		Token:    token,
-		Filename: filename,
-		Offset:   "0",
-		Size:     "10000",
-	}
+// func startFile(conn *websocket.Conn, token string, filename string) {
+// 	msg := jsontypes.StartFileMessage{
+// 		Cmd:      "START_FILE",
+// 		Token:    token,
+// 		Filename: filename,
+// 		Offset:   "0",
+// 		Size:     "10000",
+// 	}
 
-	data, err := json.Marshal(msg)
-	if err != nil {
-		panic(err)
-	}
-	sendData(conn, data)
-}
+// 	data, err := json.Marshal(msg)
+// 	if err != nil {
+// 		panic(err)
+// 	}
+// 	sendData(conn, data)
+// }
 
 func main() {
 	origin := "http://halot-one/"
@@ -87,10 +115,15 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
-	token := passToToken("groot")
 
+	getVersion(ws)
+
+	token := passToToken("groot")
 	getStatus(ws, token)
-	startFile(ws, token, "afile.txt")
+
+	statusTimer := time.NewTimer(10 * time.Second)
+	<-statusTimer.C
+	getStatus(ws, token)
 
 	var msg = make([]byte, 512)
 
@@ -102,10 +135,11 @@ func main() {
 		}
 		fmt.Printf("Received: %s.\n", msg[:n])
 
-		incomingMsg, err := jsontypes.UnmarshalIncomingMessage(msg[:n])
+		incomingMsg, err := jsontypes.UnmarshalMessageCommand(msg[:n])
 		if err != nil {
 			log.Fatal(err)
 		}
+
 		if incomingMsg.Cmd == "GET_PRINT_STATUS" {
 			printStatus, err := jsontypes.UnmarshalPrintStatusIncoming(msg[:n])
 			if err != nil {

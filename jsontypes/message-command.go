@@ -8,16 +8,16 @@ package jsontypes
 
 import "encoding/json"
 
-func UnmarshalIncomingMessage(data []byte) (IncomingMessage, error) {
-	var r IncomingMessage
+func UnmarshalMessageCommand(data []byte) (MessageCommand, error) {
+	var r MessageCommand
 	err := json.Unmarshal(data, &r)
 	return r, err
 }
 
-func (r *IncomingMessage) Marshal() ([]byte, error) {
+func (r *MessageCommand) Marshal() ([]byte, error) {
 	return json.Marshal(r)
 }
 
-type IncomingMessage struct {
+type MessageCommand struct {
 	Cmd string `json:"cmd"`
 }

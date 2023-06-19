@@ -19,8 +19,7 @@ func (r *StartFileMessage) Marshal() ([]byte, error) {
 }
 
 type StartFileMessage struct {
-	Cmd      string `json:"cmd"`
-	Token    string `json:"token"`
+	OutgoingMessage
 	Filename string `json:"filename"`
 	Offset   string `json:"offset"`
 	Size     string `json:"size"`
