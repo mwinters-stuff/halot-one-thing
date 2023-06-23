@@ -8,18 +8,18 @@ package send
 
 import "encoding/json"
 
-func UnmarshalStartFileMessage(data []byte) (StartFileMessage, error) {
-	var r StartFileMessage
+func UnmarshalStartFile(data []byte) (StartFile, error) {
+	var r StartFile
 	err := json.Unmarshal(data, &r)
 	return r, err
 }
 
-func (r *StartFileMessage) Marshal() ([]byte, error) {
+func (r *StartFile) Marshal() ([]byte, error) {
 	return json.Marshal(r)
 }
 
-type StartFileMessage struct {
-	OutgoingMessage
+type StartFile struct {
+	TokenMessage
 	Filename string `json:"filename"`
 	Offset   string `json:"offset"`
 	Size     string `json:"size"`

@@ -6,23 +6,18 @@
 
 package receive
 
-import (
-	"encoding/json"
+import "encoding/json"
 
-	"github.com/mwinters-stuff/halo-one-thing/jsontypes"
-)
-
-func UnmarshalIncomingStatusMessage(data []byte) (IncomingStatusMessage, error) {
-	var r IncomingStatusMessage
+func UnmarshalVersion(data []byte) (Version, error) {
+	var r Version
 	err := json.Unmarshal(data, &r)
 	return r, err
 }
 
-func (r *IncomingStatusMessage) Marshal() ([]byte, error) {
+func (r *Version) Marshal() ([]byte, error) {
 	return json.Marshal(r)
 }
 
-type IncomingStatusMessage struct {
-	jsontypes.MessageCommand
-	Status string `json:"status"`
+type Version struct {
+	Version string `json:"version"`
 }

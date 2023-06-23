@@ -11,7 +11,7 @@ import (
 func TestDecodePrintParametersSet(t *testing.T) {
 	json := `{"bottomExposureNum":"2","cmd":"PRINT_PARA_SET","delayLight":"4","eleSpeed":"2","initExposure":"40","printExposure":"3","printHeight":"6","token":"ATOKEN"}`
 
-	data, err := send.UnmarshalPrintParametersSetMessage([]byte(json))
+	data, err := send.UnmarshalPrintParametersSet([]byte(json))
 	assert.Nil(t, err, "Err is not nil")
 
 	assert.Equal(t, "PRINT_PARA_SET", data.Cmd)
@@ -28,7 +28,7 @@ func TestDecodePrintParametersSet(t *testing.T) {
 
 func TestEncodePrintParametersSet(t *testing.T) {
 	data := send.PrintParametersSet{
-		OutgoingMessage: send.OutgoingMessage{
+		TokenMessage: send.TokenMessage{
 			MessageCommand: jsontypes.MessageCommand{
 				Cmd: "PRINT_PARA_SET"},
 			Token: "ATOKEN"},

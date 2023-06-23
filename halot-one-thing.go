@@ -68,8 +68,8 @@ func getVersion(ws *websocket.Conn) {
 		log.Fatal(err)
 	}
 
-	var versionMessage receive.VersionIncoming
-	if versionMessage, err = receive.UnmarshalVersionIncomingMessage(msg[:n]); err != nil {
+	var versionMessage receive.Version
+	if versionMessage, err = receive.UnmarshalVersion(msg[:n]); err != nil {
 		log.Fatal(err)
 	}
 
@@ -82,7 +82,7 @@ func getVersion(ws *websocket.Conn) {
 }
 
 func getStatus(conn *websocket.Conn, token string) {
-	msg := send.OutgoingMessage{
+	msg := send.TokenMessage{
 		Token:          token,
 		MessageCommand: jsontypes.MessageCommand{Cmd: "GET_PRINT_STATUS"},
 	}
@@ -143,14 +143,14 @@ func main() {
 		}
 
 		if incomingMsg.Cmd == "GET_PRINT_STATUS" {
-			printStatus, err := receive.UnmarshalPrintStatusIncoming(msg[:n])
+			printStatus, err := receive.UnmarshalPrinterStatus(msg[:n])
 			if err != nil {
 				log.Fatal(err)
 			}
 			fmt.Printf("Status %s\n", printStatus.PrintStatus)
 		}
 		if incomingMsg.Cmd == "START_FILE" {
-			startFile, err := receive.UnmarshalStartFileIncoming(msg[:n])
+			startFile, err := receive.UnmarshalStartFile(msg[:n])
 			if err != nil {
 				log.Fatal(err)
 			}

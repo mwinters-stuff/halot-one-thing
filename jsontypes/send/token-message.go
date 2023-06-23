@@ -12,17 +12,17 @@ import (
 	"github.com/mwinters-stuff/halo-one-thing/jsontypes"
 )
 
-func UnmarshalOutgoingMessage(data []byte) (OutgoingMessage, error) {
-	var r OutgoingMessage
+func UnmarshalTokenMessage(data []byte) (TokenMessage, error) {
+	var r TokenMessage
 	err := json.Unmarshal(data, &r)
 	return r, err
 }
 
-func (r *OutgoingMessage) Marshal() ([]byte, error) {
+func (r *TokenMessage) Marshal() ([]byte, error) {
 	return json.Marshal(r)
 }
 
-type OutgoingMessage struct {
+type TokenMessage struct {
 	Token string `json:"token"`
 	jsontypes.MessageCommand
 }

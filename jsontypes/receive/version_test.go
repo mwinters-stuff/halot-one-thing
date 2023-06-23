@@ -7,17 +7,17 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestDecodeVersionIncomingMessage(t *testing.T) {
+func TestDecodeVersion(t *testing.T) {
 	json := `{"version":"1.0.0"}`
 
-	data, err := receive.UnmarshalVersionIncomingMessage([]byte(json))
+	data, err := receive.UnmarshalVersion([]byte(json))
 	assert.Nil(t, err, "Err is not nil")
 
 	assert.Equal(t, "1.0.0", data.Version)
 }
 
-func TestEncodeVersionIncomingMessage(t *testing.T) {
-	data := receive.VersionIncoming{Version: "1.0.0"}
+func TestEncodeVersion(t *testing.T) {
+	data := receive.Version{Version: "1.0.0"}
 
 	json, err := data.Marshal()
 	assert.Nil(t, err, "Err is not nil")

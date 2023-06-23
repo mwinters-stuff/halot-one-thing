@@ -8,10 +8,10 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestDecodePrinterStatusIncoming(t *testing.T) {
+func TestDecodePrinterStatus(t *testing.T) {
 	json := `{"bottomExposureNum":"2","cmd":"GET_PRINT_STATUS","curSliceLayer":"0","delayLight":"1","eleSpeed":"1","filename":"Frog.cxdlp","initExposure":"40","layerThickness":"0.050000","printExposure":"3","printHeight":"6","printRemainTime":"790","printStatus":"PRINT_STOP","resin":"","sliceLayerCount":"43"}`
 
-	data, err := receive.UnmarshalPrintStatusIncoming([]byte(json))
+	data, err := receive.UnmarshalPrinterStatus([]byte(json))
 	assert.Nil(t, err, "Err is not nil")
 
 	assert.Equal(t, "GET_PRINT_STATUS", data.Cmd)
@@ -32,8 +32,8 @@ func TestDecodePrinterStatusIncoming(t *testing.T) {
 
 }
 
-func TestEncodePrinterStatusIncoming(t *testing.T) {
-	data := receive.PrintStatusIncoming{
+func TestEncodePrinterStatus(t *testing.T) {
+	data := receive.PrinterStatus{
 		MessageCommand: jsontypes.MessageCommand{
 			Cmd: "GET_PRINT_STATUS"},
 		BottomExposureNum: "2",

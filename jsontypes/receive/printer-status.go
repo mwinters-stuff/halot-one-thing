@@ -12,17 +12,17 @@ import (
 	"github.com/mwinters-stuff/halo-one-thing/jsontypes"
 )
 
-func UnmarshalPrintStatusIncoming(data []byte) (PrintStatusIncoming, error) {
-	var r PrintStatusIncoming
+func UnmarshalPrinterStatus(data []byte) (PrinterStatus, error) {
+	var r PrinterStatus
 	err := json.Unmarshal(data, &r)
 	return r, err
 }
 
-func (r *PrintStatusIncoming) Marshal() ([]byte, error) {
+func (r *PrinterStatus) Marshal() ([]byte, error) {
 	return json.Marshal(r)
 }
 
-type PrintStatusIncoming struct {
+type PrinterStatus struct {
 	BottomExposureNum string `json:"bottomExposureNum"`
 	jsontypes.MessageCommand
 	CurSliceLayer   string `json:"curSliceLayer"`

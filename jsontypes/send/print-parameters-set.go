@@ -8,7 +8,7 @@ package send
 
 import "encoding/json"
 
-func UnmarshalPrintParametersSetMessage(data []byte) (PrintParametersSet, error) {
+func UnmarshalPrintParametersSet(data []byte) (PrintParametersSet, error) {
 	var r PrintParametersSet
 	err := json.Unmarshal(data, &r)
 	return r, err
@@ -20,7 +20,7 @@ func (r *PrintParametersSet) Marshal() ([]byte, error) {
 
 type PrintParametersSet struct {
 	BottomExposureNum string `json:"bottomExposureNum"`
-	OutgoingMessage
+	TokenMessage
 	DelayLight    string `json:"delayLight"`
 	EleSpeed      string `json:"eleSpeed"`
 	InitExposure  string `json:"initExposure"`

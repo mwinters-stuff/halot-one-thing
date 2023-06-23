@@ -8,10 +8,10 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestDecodeStartFileMessage(t *testing.T) {
+func TestDecodeStartFile(t *testing.T) {
 	json := `{"token":"ATOKEN","cmd":"START_FILE","filename":"filename.abc","offset":"0","size":"212345"}`
 
-	data, err := send.UnmarshalStartFileMessage([]byte(json))
+	data, err := send.UnmarshalStartFile([]byte(json))
 	assert.Nil(t, err, "Err is not nil")
 
 	assert.Equal(t, "START_FILE", data.Cmd)
@@ -21,9 +21,9 @@ func TestDecodeStartFileMessage(t *testing.T) {
 	assert.Equal(t, "212345", data.Size)
 }
 
-func TestEncodeStartFileMessage(t *testing.T) {
-	data := send.StartFileMessage{
-		OutgoingMessage: send.OutgoingMessage{
+func TestEncodeStartFile(t *testing.T) {
+	data := send.StartFile{
+		TokenMessage: send.TokenMessage{
 			MessageCommand: jsontypes.MessageCommand{
 				Cmd: "START_FILE"},
 			Token: "ATOKEN"},
