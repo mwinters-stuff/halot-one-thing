@@ -26,7 +26,7 @@ func TestDecodeStartData(t *testing.T) {
 func TestEncodeStartData(t *testing.T) {
 	data := receive.StartData{
 		MessageCommand: jsontypes.MessageCommand{
-			Cmd: "START_FILE"},
+			Cmd: "START_DATA"},
 		Errorcode: 0,
 		Key:       "19ebcf3c",
 		Received:  "538539",
