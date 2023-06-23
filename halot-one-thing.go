@@ -13,6 +13,8 @@ import (
 
 	"github.com/andreburgaud/crypt2go/ecb"
 	"github.com/mwinters-stuff/halo-one-thing/jsontypes"
+	"github.com/mwinters-stuff/halo-one-thing/jsontypes/receive"
+	"github.com/mwinters-stuff/halo-one-thing/jsontypes/send"
 	"golang.org/x/net/websocket"
 )
 
@@ -66,8 +68,8 @@ func getVersion(ws *websocket.Conn) {
 		log.Fatal(err)
 	}
 
-	var versionMessage jsontypes.VersionIncoming
-	if versionMessage, err = jsontypes.UnmarshalVersionIncomingMessage(msg[:n]); err != nil {
+	var versionMessage receive.VersionIncoming
+	if versionMessage, err = receive.UnmarshalVersionIncomingMessage(msg[:n]); err != nil {
 		log.Fatal(err)
 	}
 
@@ -80,7 +82,7 @@ func getVersion(ws *websocket.Conn) {
 }
 
 func getStatus(conn *websocket.Conn, token string) {
-	msg := jsontypes.OutgoingMessage{
+	msg := send.OutgoingMessage{
 		Token:          token,
 		MessageCommand: jsontypes.MessageCommand{Cmd: "GET_PRINT_STATUS"},
 	}
@@ -141,14 +143,14 @@ func main() {
 		}
 
 		if incomingMsg.Cmd == "GET_PRINT_STATUS" {
-			printStatus, err := jsontypes.UnmarshalPrintStatusIncoming(msg[:n])
+			printStatus, err := receive.UnmarshalPrintStatusIncoming(msg[:n])
 			if err != nil {
 				log.Fatal(err)
 			}
 			fmt.Printf("Status %s\n", printStatus.PrintStatus)
 		}
 		if incomingMsg.Cmd == "START_FILE" {
-			startFile, err := jsontypes.UnmarshalStartFileIncoming(msg[:n])
+			startFile, err := receive.UnmarshalStartFileIncoming(msg[:n])
 			if err != nil {
 				log.Fatal(err)
 			}

@@ -4,7 +4,7 @@
 //    StartFileIncoming, err := UnmarshalStartFileIncoming(bytes)
 //    bytes, err = StartFileIncoming.Marshal()
 
-package jsontypes
+package receive
 
 import "encoding/json"
 

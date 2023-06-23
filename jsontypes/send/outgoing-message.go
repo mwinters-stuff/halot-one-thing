@@ -4,20 +4,25 @@
 //    OutgoingMessage, err := UnmarshalOutgoingMessage(bytes)
 //    bytes, err = OutgoingMessage.Marshal()
 
-package jsontypes
+package send
 
-import "encoding/json"
+import (
+	"encoding/json"
 
-func UnmarshalVersionIncomingMessage(data []byte) (VersionIncoming, error) {
-	var r VersionIncoming
+	"github.com/mwinters-stuff/halo-one-thing/jsontypes"
+)
+
+func UnmarshalOutgoingMessage(data []byte) (OutgoingMessage, error) {
+	var r OutgoingMessage
 	err := json.Unmarshal(data, &r)
 	return r, err
 }
 
-func (r *VersionIncoming) Marshal() ([]byte, error) {
+func (r *OutgoingMessage) Marshal() ([]byte, error) {
 	return json.Marshal(r)
 }
 
-type VersionIncoming struct {
-	Version string `json:"version"`
+type OutgoingMessage struct {
+	Token string `json:"token"`
+	jsontypes.MessageCommand
 }

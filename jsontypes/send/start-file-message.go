@@ -4,7 +4,7 @@
 //    StartFileMessage, err := UnmarshalStartFileMessage(bytes)
 //    bytes, err = StartFileMessage.Marshal()
 
-package jsontypes
+package send
 
 import "encoding/json"
 

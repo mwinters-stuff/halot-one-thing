@@ -4,21 +4,20 @@
 //    OutgoingMessage, err := UnmarshalOutgoingMessage(bytes)
 //    bytes, err = OutgoingMessage.Marshal()
 
-package jsontypes
+package receive
 
 import "encoding/json"
 
-func UnmarshalOutgoingMessage(data []byte) (OutgoingMessage, error) {
-	var r OutgoingMessage
+func UnmarshalVersionIncomingMessage(data []byte) (VersionIncoming, error) {
+	var r VersionIncoming
 	err := json.Unmarshal(data, &r)
 	return r, err
 }
 
-func (r *OutgoingMessage) Marshal() ([]byte, error) {
+func (r *VersionIncoming) Marshal() ([]byte, error) {
 	return json.Marshal(r)
 }
 
-type OutgoingMessage struct {
-	Token string `json:"token"`
-	MessageCommand
+type VersionIncoming struct {
+	Version string `json:"version"`
 }
