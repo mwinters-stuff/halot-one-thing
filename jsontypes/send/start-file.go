@@ -1,12 +1,16 @@
 // This file was generated from JSON Schema using quicktype, do not modify it directly.
 // To parse and unparse this JSON data, add this code to your project and do:
 //
-//    StartFileMessage, err := UnmarshalStartFileMessage(bytes)
-//    bytes, err = StartFileMessage.Marshal()
+//    startFile, err := UnmarshalStartFile(bytes)
+//    bytes, err = startFile.Marshal()
 
 package send
 
-import "encoding/json"
+import (
+	"encoding/json"
+
+	"github.com/mwinters-stuff/halo-one-thing/jsontypes"
+)
 
 func UnmarshalStartFile(data []byte) (StartFile, error) {
 	var r StartFile
@@ -19,8 +23,9 @@ func (r *StartFile) Marshal() ([]byte, error) {
 }
 
 type StartFile struct {
-	TokenMessage
+	jsontypes.MessageCommand
 	Filename string `json:"filename"`
+	Key      string `json:"key"`
 	Offset   string `json:"offset"`
 	Size     string `json:"size"`
 }
