@@ -1,8 +1,6 @@
 -> is messages sent to printer
 <- is message received in response from printer..
 
-
-
 -> {"cmd":"VERSION_CHECK"}
 <- {"version":"1"}
 
