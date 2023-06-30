@@ -1,9 +1,7 @@
 package main
 
 import (
-	"errors"
-	"fmt"
-	"log"
+	"os"
 	"time"
 
 	"crypto/des"
@@ -12,6 +10,7 @@ import (
 	"encoding/json"
 
 	"github.com/andreburgaud/crypt2go/ecb"
+	"github.com/mwinters-stuff/halo-one-thing/common"
 	"github.com/mwinters-stuff/halo-one-thing/jsontypes"
 	"github.com/mwinters-stuff/halo-one-thing/jsontypes/receive"
 	"github.com/mwinters-stuff/halo-one-thing/jsontypes/send"
@@ -23,7 +22,7 @@ func passToToken(password string) string {
 
 	block, err := des.NewCipher(key)
 	if err != nil {
-		fmt.Println("Error creating DES cipher:", err)
+		common.Logger.Error().Msgf("Error creating DES cipher: %e", err)
 		return ""
 	}
 
@@ -47,38 +46,46 @@ func padPassword(password string) string {
 }
 
 func sendData(conn *websocket.Conn, data []byte) {
-
+	common.Logger.Info().Msgf("Sending %s\n", data)
 	n, err := conn.Write(data)
 	if err != nil {
-		panic(err)
+		common.Logger.Fatal().Err(err)
+		os.Exit(1)
 	}
-	fmt.Printf("wrote %d\n", n)
+	common.Logger.Info().Msgf("wrote %d\n", n)
 }
 
-func getVersion(ws *websocket.Conn) {
+func getVersion(ws *websocket.Conn, startTimerChan chan bool) {
 	data, err := json.Marshal(jsontypes.MessageCommand{Cmd: "GET_VERSION"})
 	if err != nil {
-		panic(err)
+		common.Logger.Fatal().Err(err)
+		os.Exit(1)
 	}
 	sendData(ws, data)
 
 	var msg = make([]byte, 100)
 	var n int
 	if n, err = ws.Read(msg); err != nil {
-		log.Fatal(err)
+		common.Logger.Fatal().Err(err)
+		os.Exit(1)
 	}
 
 	var versionMessage receive.Version
 	if versionMessage, err = receive.UnmarshalVersion(msg[:n]); err != nil {
-		log.Fatal(err)
+		common.Logger.Fatal().Err(err)
+		os.Exit(1)
+
 	}
 
-	fmt.Printf("Received Version: %s.\n", versionMessage.Version)
+	common.Logger.Info().Msgf("Received Version: %s.\n", versionMessage.Version)
 
 	if versionMessage.Version != "1" {
-		log.Fatal(errors.New(fmt.Sprintf("can no use version %s", versionMessage.Version)))
+		common.Logger.Fatal().Msgf("can not use version %s", versionMessage.Version)
+		os.Exit(1)
 	}
-
+	go func() {
+		startTimerChan <- true
+	}()
 }
 
 func getStatus(conn *websocket.Conn, token string) {
@@ -89,72 +96,94 @@ func getStatus(conn *websocket.Conn, token string) {
 
 	data, err := json.Marshal(msg)
 	if err != nil {
-		panic(err)
+		common.Logger.Fatal().Err(err)
+		os.Exit(1)
 	}
 	sendData(conn, data)
 }
 
-// func startFile(conn *websocket.Conn, token string, filename string) {
-// 	msg := jsontypes.StartFileMessage{
-// 		Cmd:      "START_FILE",
-// 		Token:    token,
-// 		Filename: filename,
-// 		Offset:   "0",
-// 		Size:     "10000",
-// 	}
+func readLoop(conn *websocket.Conn, target chan []byte) {
+	for {
+		var n int
+		var msg = make([]byte, 512)
+		var err error
 
-// 	data, err := json.Marshal(msg)
-// 	if err != nil {
-// 		panic(err)
-// 	}
-// 	sendData(conn, data)
-// }
+		if n, err = conn.Read(msg); err != nil {
+			common.Logger.Fatal().Err(err)
+			os.Exit(1)
+		}
+		common.Logger.Info().Msgf("Received: %s.\n", msg[:n])
+		target <- msg[:n]
+	}
+}
 
 func main() {
 	origin := "http://halot-one/"
-	url := "ws://halot-one:18188/&password=groot"
+	url := "ws://localhost:18188/&password=groot"
 	ws, err := websocket.Dial(url, "", origin)
 	if err != nil {
-		log.Fatal(err)
+		common.Logger.Fatal().Err(err)
+		os.Exit(1)
 	}
-
-	getVersion(ws)
-
 	token := passToToken("groot")
-	getStatus(ws, token)
 
-	statusTimer := time.NewTimer(10 * time.Second)
-	<-statusTimer.C
-	getStatus(ws, token)
+	readSocket := make(chan []byte)
+	connectChannel := make(chan bool)
+	startTimerChannel := make(chan bool)
 
-	var msg = make([]byte, 512)
+	go func() {
+		connectChannel <- true
+	}()
+
+	statusTimer := time.NewTicker(10 * time.Second)
+	defer statusTimer.Stop()
+	var runStatusTimer bool = false
 
 	for {
-		var n int
-
-		if n, err = ws.Read(msg); err != nil {
-			log.Fatal(err)
-		}
-		fmt.Printf("Received: %s.\n", msg[:n])
-
-		incomingMsg, err := jsontypes.UnmarshalMessageCommand(msg[:n])
-		if err != nil {
-			log.Fatal(err)
-		}
-
-		if incomingMsg.Cmd == "GET_PRINT_STATUS" {
-			printStatus, err := receive.UnmarshalPrinterStatus(msg[:n])
-			if err != nil {
-				log.Fatal(err)
+		select {
+		case <-statusTimer.C:
+			if runStatusTimer {
+				getStatus(ws, token)
 			}
-			fmt.Printf("Status %s\n", printStatus.PrintStatus)
+		case data := <-readSocket:
+			readData(data)
+		case <-connectChannel:
+			common.Logger.Info().Msg("Connected Get Version")
+			getVersion(ws, startTimerChannel)
+		case runStatusTimer = <-startTimerChannel:
+			go readLoop(ws, readSocket)
+			common.Logger.Info().Msg("Start Read Loop & Timer")
 		}
-		if incomingMsg.Cmd == "START_FILE" {
-			startFile, err := receive.UnmarshalStartFile(msg[:n])
+
+	}
+}
+
+func readData(data []byte) {
+	incomingMsg, err := jsontypes.UnmarshalMessageCommand(data)
+	if err != nil {
+		common.Logger.Fatal().Err(err)
+		os.Exit(1)
+	}
+
+	switch incomingMsg.Cmd {
+	case "GET_PRINT_STATUS":
+		{
+			printStatus, err := receive.UnmarshalPrinterStatus(data)
 			if err != nil {
-				log.Fatal(err)
+				common.Logger.Fatal().Err(err)
+				os.Exit(1)
 			}
-			fmt.Printf("StartFile %s\n", startFile.Filename)
+			common.Logger.Info().Msgf("Status %s\n", printStatus.PrintStatus)
+		}
+	case "START_FILE":
+		{
+			startFile, err := receive.UnmarshalStartFile(data)
+			if err != nil {
+				common.Logger.Fatal().Err(err)
+				os.Exit(1)
+			}
+			common.Logger.Info().Msgf("StartFile %s\n", startFile.Filename)
 		}
 	}
+
 }

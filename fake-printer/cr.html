@@ -1,0 +1,263 @@
+<!DOCTYPE HTML>
+
+<html>
+	<head>
+		<title>Creality Halot Remote Control</title>
+		<script src="https://cdnjs.cloudflare.com/ajax/libs/pako/2.1.0/pako.min.js" integrity="sha512-g2TeAWw5GPnX7z0Kn8nFbYfeHcvAu/tx6d6mrLe/90mkCxO+RcptyYpksUz35EO337F83bZwcmUyHiHamspkfg==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+		<script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.js" integrity="sha512-NQVmLzNy4Lr5QTrmXvq/WzTMUnRHmv7nyIT/M6LyGPBS+TIeRxZ+YQaqWxjpRpvRMQSuYPQURZz/+pLi81xXeA==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+   	</head>
+   
+   	<body onload="onPageLoad()">
+    	<div id = "sse">
+			URL: <input type=text value="ws://localhost:18188/" id="url">
+			password: <input type=text value="0" id="password">
+        	<input type=submit value="Connect" onClick="javascript:connect()">
+        	<input type=submit value="Disconnect" onClick="javascript:disconnect()">
+      	</div><br>
+      	<div id = "fileCmds">
+			File upload: <input type="file" id="inputFile" />
+        	<input type=submit value="Upload" onClick="javascript:uploadFile()">
+      	</div><br>
+      	<div id = "cmds">
+        	<input type=submit value="Print" onClick="javascript:startPrint()">
+        	<input type=submit value="Pause" onClick="javascript:sendCmd('PRINT_PAUSE')">
+        	<input type=submit value="Stop" onClick="javascript:stopPrint()">
+      	</div><br>
+      	<div id = "fileStatus"></div><br>
+      	<div id = "status"></div><br>
+      	<div id = "log" style="font-size:11px;"></div>
+		<br>
+		Source: <a href="https://github.com/danielkucera/creality-remote-control">https://github.com/danielkucera/creality-remote-control</a><br>
+		<script type = "text/javascript">
+			var ws;
+			var stat;
+			var statusTimer;
+			var file;
+			var token;
+	
+			document.getElementById('inputFile').addEventListener('change', function(e) {
+				  file = document.getElementById('inputFile').files[0];
+			});
+	
+			function log(text){
+				line = (new Date().toLocaleTimeString()) + " " + text + "<br>\n";
+				document.getElementById('log').innerHTML = line + document.getElementById('log').innerHTML;
+			}
+
+			function passToToken(password){
+				// from: https://github.com/tarequeh/DES/blob/master/run_des.c#L136
+
+				var key = CryptoJS.enc.Hex.parse("6138356539643638");
+
+				var encrypted = CryptoJS.DES.encrypt(password, key, {
+					mode: CryptoJS.mode.ECB,
+					padding: CryptoJS.pad.Pkcs7
+				});
+
+				var finalEncrypted = CryptoJS.enc.Base64.stringify(encrypted.ciphertext);
+
+				return finalEncrypted;
+			}
+		
+			function printStatus(stat){
+				code = "";
+				code += "Status: " + stat.printStatus + "<br>\n";
+				code += "Filename: " + stat.filename + "<br>\n";
+				code += "Time left: " + new Date(stat.printRemainTime*1000).toISOString().substring(11, 19) + "<br>\n";
+				code += "Progress: " + Math.round((stat.curSliceLayer/stat.sliceLayerCount)*1000)/10 + "%<br>\n";
+				code += "Current layer: " + stat.curSliceLayer + "<br>\n";
+				code += "Total layers: " + stat.sliceLayerCount + "<br>\n";
+				code += "Print exposure: " + stat.printExposure + "s<br>\n";
+				code += "Layer thickness: " + stat.layerThickness + "mm<br>\n";
+				code += "Rising height: " + stat.printHeight + "mm<br>\n";
+				code += "Bottom layers: " + stat.bottomExposureNum + "<br>\n";
+				code += "Initial exposure: " + stat.initExposure + "s<br>\n";
+				code += "Turn off delay: " + stat.delayLight + "s<br>\n";
+				code += "Motor speed: " + stat.eleSpeed + "mm/s<br>\n";
+				code += "Exposure time: " + stat.delayLight + "s<br>\n";
+				code += "Resin: " + stat.resin + "<br>\n";
+
+				document.getElementById('status').innerHTML = code;
+			}
+
+			function printFileStatus(stat){
+				code = "";
+				code += "Sent: " + stat.received/(1024*1024) + " MB<br>\n";
+				code += "Size: " + stat.size/(1024*1024) + " MB<br>\n";
+				code += "Progress: " + Math.round((stat.received/stat.size)*100) + "%<br>\n";
+				code += "Checked: " + (stat.checkstate ? "OK" : "ERROR") + "<br>\n";
+
+				document.getElementById('fileStatus').innerHTML = code;
+			}
+
+			function sendCmd(cmd, extras = {}){
+
+				if (!ws || ws.readyState != 1){
+					alert("Not connected, please connect first.");
+					return;
+				}
+
+				msg = {
+					cmd: cmd,
+					token: token,
+					...extras,
+				};
+				jmsg = JSON.stringify(msg);
+				log("> " + jmsg);
+				ws.send(jmsg);
+
+			}
+	
+			function getStatus(){
+				sendCmd("GET_PRINT_STATUS");
+			}
+
+			function uploadFile(){
+				if (!file) {
+					alert("Please choose a file first.");
+					return;
+				}
+
+				extras = {
+					filename: file.name,
+					offset: "0", // why string?
+					key: file.name,
+					size: file.size.toString(), // why?
+				}
+				sendCmd("START_FILE", extras);
+			}
+
+			function startPrint(){
+				if (confirm("Are you sure you want to start new print?") == true){
+					sendCmd("START_PRINT", {filename: file.name});
+				}
+			}
+
+			function stopPrint(){
+				if (confirm("Are you sure you want to stop the print?") == true){
+					sendCmd('PRINT_STOP');
+				}
+			}
+		
+			function disconnect(){
+				log("Disconnecting...");	
+				ws.close();
+			}
+
+			var readEventHandler = function(evt) {
+				if (evt.target.error == null) {
+					data = evt.target.result;
+
+					// console.log(data);
+					
+					zdata = pako.deflate(data);
+
+					len = new Uint8Array(4);
+					len[0] = (data.byteLength >> 24) & 0xff;
+					len[1] = (data.byteLength >> 16) & 0xff;
+					len[2] = (data.byteLength >> 8) & 0xff;
+					len[3] = (data.byteLength >> 0) & 0xff;
+
+					var blob = new Blob([len, zdata]);
+
+					// console.log(blob);
+					console.log("compressed ",data.byteLength," to ",blob.size)
+					ws.send(blob);
+
+				} else {
+					console.log("Read error: " + evt.target.error);
+					return;
+				}
+			}
+
+			function sendChunk(offset){
+				console.log("Sending chunk starting at offset ", offset);				dataSlice = file.slice(offset, offset + 0x10000);
+
+				reader = new FileReader();
+
+				reader.onload = readEventHandler;
+
+				reader.readAsArrayBuffer(dataSlice);
+			}
+	
+			 function connect(){
+				log("Connecting...")
+				if ("WebSocket" in window) {
+					url = document.getElementById('url').value;
+					password = document.getElementById('password').value;
+					token = passToToken(password);
+
+					window.location.hash = "url="+url+"&password="+password;
+
+				    // Let us open a web socket
+				    ws = new WebSocket(url);
+					
+				   	ws.onopen = function() {
+						log("Connected.");
+					  
+						getStatus();
+			  
+						statusTimer = setInterval(getStatus, 5000);
+					};
+					
+				    ws.onmessage = function (evt) { 
+						var received_msg = evt.data;
+						msg = JSON.parse(evt.data);
+	
+						cmd = msg.cmd;
+						
+						if (cmd == "GET_PRINT_STATUS") {
+							printStatus(msg);
+
+						} else if (cmd == "START_FILE") {
+							offset = parseInt(msg.offset)
+							sendChunk(offset);
+
+						} else if (cmd == "START_DATA") {
+							offset = parseInt(msg.received)
+							printFileStatus(msg);
+							sendChunk(offset);
+
+						} else if (cmd == "CHECK_DATA") {
+							printFileStatus(msg);
+						}
+
+						log("< " + received_msg);
+					};
+					
+					ws.onclose = function() { 
+						clearInterval(statusTimer);
+						log("Connection is closed..."); 
+					};
+	
+				} else {
+					log("WebSocket NOT supported by your Browser!");
+				}
+			}
+
+			function updateParamsFromHash(){
+				params = new URLSearchParams(location.hash.substring(1));
+
+				if(params.has("url")){
+					document.getElementById('url').value = params.get("url");
+				}
+
+				if(params.has("password")){
+					document.getElementById('password').value = params.get("password");
+				}
+			}
+
+			function onPageLoad(){
+				console.log(window.location.hash);
+
+				if ("onhashchange" in window) // does the browser support the hashchange event?
+				window.onhashchange = function () {
+					updateParamsFromHash();
+				}
+
+				updateParamsFromHash();
+			}
+
+		</script>
+   	</body>
+</html>

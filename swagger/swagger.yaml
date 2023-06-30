@@ -1,0 +1,19 @@
+---
+swagger: '2.0'
+info:
+  version: 1.0.0
+  title: Halot One Server
+paths:
+  /version:
+    get:
+      produces:
+        - application/json
+      operationId: getVersion
+      responses:
+        200:
+          description: returns halot-one printer software version
+          schema:
+            type: object
+            properties:
+              Version:
+                type: string
