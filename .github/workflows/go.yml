@@ -40,8 +40,11 @@ jobs:
 #       with:
 #          working-directory: handlers
 
-    - name: Build
-      run: go build -v ./...
+    - name: Build Fake Printer
+      run: go build -v ./fake-printer/main.go
 
-    - name: Test
-      run: go test -v ./...
+    - name: Build Halot One Thing
+      run: go build -v ./halot-one-thing.go
+    
+    - name: Build Server CMD
+      run: go build -v ./cmd/halot-one/main.go

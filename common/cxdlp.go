@@ -1,14 +1,24 @@
 package common
 
+// not yet fully working..
+
 import (
-	"bytes"
-	"encoding/binary"
+	"errors"
 	"fmt"
+	"io"
+	"os"
 )
 
 const dataTerm uint16 = 0x0d0a
 
-type CXDLP struct {
+type CXDLPFile interface {
+	ReadHeader(filename string) error
+
+	internalReadHeader(DataReader) error
+	internalReadLayers(DataReader) error
+}
+
+type CXDLPFileImpl struct {
 	Magic1        string
 	Magic2        string
 	Model         string
@@ -51,8 +61,8 @@ type Line struct {
 	Color  uint8
 }
 
-func NewCXDLP() *CXDLP {
-	return &CXDLP{
+func NewCXDLPFile() CXDLPFile {
+	return &CXDLPFileImpl{
 		Magic1:        "CXSW3DV2",
 		Magic2:        "CXSW3DV2",
 		Model:         "CL-89",
@@ -78,8 +88,20 @@ func NewCXDLP() *CXDLP {
 	}
 }
 
-func (c *CXDLP) Read(data []byte) *CXDLP {
-	reader := NewDataReader(data, 0)
+func (c *CXDLPFileImpl) ReadHeader(filename string) error {
+	file, err := os.Open(filename)
+	if err != nil {
+		return err
+	}
+	defer file.Close()
+	data, err := io.ReadAll(file)
+	if err != nil {
+		return err
+	}
+	return c.internalReadHeader(NewDataReader(data, 0))
+}
+
+func (c *CXDLPFileImpl) internalReadHeader(reader DataReader) error {
 
 	c.Magic1 = reader.ReadString(false)
 	c.Version = reader.ReadU16()
@@ -91,15 +113,15 @@ func (c *CXDLP) Read(data []byte) *CXDLP {
 	reader.Skip(60)
 	c.Thumb = reader.ReadBytes(26912)
 	if reader.ReadU16() != dataTerm {
-		panic("invalid data term")
+		return errors.New("invalid data term")
 	}
 	c.Preview1 = reader.ReadBytes(168200)
 	if reader.ReadU16() != dataTerm {
-		panic("invalid data term")
+		return errors.New("invalid data term")
 	}
 	c.Preview2 = reader.ReadBytes(168200)
 	if reader.ReadU16() != dataTerm {
-		panic("invalid data term")
+		return errors.New("invalid data term")
 	}
 	c.DimX = reader.ReadString(true)
 	c.DimY = reader.ReadString(true)
@@ -115,6 +137,10 @@ func (c *CXDLP) Read(data []byte) *CXDLP {
 	c.DownSpeed = reader.ReadU16()
 	c.BaseLightPWM = reader.ReadU16()
 	c.LightPWM = reader.ReadU16()
+	return nil
+}
+
+func (c *CXDLPFileImpl) internalReadLayers(reader DataReader) error {
 
 	// Read layer record lengths
 	c.Layers = make([]Layer, c.LayerCount)
@@ -125,7 +151,7 @@ func (c *CXDLP) Read(data []byte) *CXDLP {
 		c.Layers[i] = layer
 	}
 	if reader.ReadU16() != dataTerm {
-		panic("invalid data term")
+		return errors.New("invalid data term")
 	}
 
 	// read layer meta data, not line data
@@ -133,11 +159,11 @@ func (c *CXDLP) Read(data []byte) *CXDLP {
 		layer := c.Layers[i]
 		size := reader.ReadU32()
 		if size != layer.Length {
-			panic(fmt.Sprintf("layer length mismatch: %d != %d @ i=%d", size, layer.Length, i))
+			return errors.New(fmt.Sprintf("layer length mismatch: %d != %d @ i=%d", size, layer.Length, i))
 		}
 		lineCount := reader.ReadU32()
 		layer.LineCount = lineCount
-		layer.Pos = reader.Offset
+		layer.Pos = reader.Offset()
 
 		layer.Lines = make([]Line, lineCount)
 
@@ -155,71 +181,7 @@ func (c *CXDLP) Read(data []byte) *CXDLP {
 
 	}
 
-	return c
-}
-
-// DataReader represents a helper struct for reading binary data
-type DataReader struct {
-	data   []byte
-	Offset int
-}
-
-// NewDataReader creates a new instance of DataReader
-func NewDataReader(data []byte, offset int) *DataReader {
-	return &DataReader{
-		data:   data,
-		Offset: offset,
-	}
-}
-
-func (r *DataReader) ReadU8() uint8 {
-	val := r.data[r.Offset]
-	r.Offset++
-	return val
-}
-
-func (r *DataReader) ReadU16() uint16 {
-	val := binary.BigEndian.Uint16(r.data[r.Offset : r.Offset+2])
-	r.Offset += 2
-	return val
-}
-
-func (r *DataReader) ReadU32() uint32 {
-	val := binary.BigEndian.Uint32(r.data[r.Offset : r.Offset+4])
-	r.Offset += 4
-	return val
-}
-
-func (r *DataReader) ReadString(doubleByte bool) string {
-	var length = r.ReadU32()
-
-	str := ""
-	if doubleByte {
-
-		for length > 0 {
-			r.Offset += 1
-			str += string(r.data[r.Offset])
-			r.Offset += 1
-			length -= 2
-		}
-
-	} else {
-		str = string(r.data[r.Offset : r.Offset+int(length-1)])
-		r.Offset += int(length)
-
-	}
-	return str
-
-}
-
-func (r *DataReader) ReadBytes(length int) []byte {
-	bytes := r.data[r.Offset : r.Offset+length]
-	r.Offset += length
-	return bytes
-}
-
-func (r *DataReader) Skip(length int) {
-	r.Offset += length
+	return nil
 }
 
 // Write saves the CXDLP data to a binary file
@@ -267,36 +229,3 @@ func (r *DataReader) Skip(length int) {
 
 // 	return nil
 // }
-
-// DataWriter represents a helper struct for writing binary data
-type DataWriter struct {
-	buffer bytes.Buffer
-}
-
-// NewDataWriter creates a new instance of DataWriter
-func NewDataWriter() *DataWriter {
-	return &DataWriter{}
-}
-
-func (w *DataWriter) WriteU8(val uint8) {
-	w.buffer.WriteByte(val)
-}
-
-func (w *DataWriter) WriteU16(val uint16) {
-	binary.Write(&w.buffer, binary.LittleEndian, val)
-}
-
-func (w *DataWriter) WriteU32(val uint32) {
-	binary.Write(&w.buffer, binary.LittleEndian, val)
-}
-
-func (w *DataWriter) WriteString(str string, isFixedLength bool) {
-	if isFixedLength {
-		w.WriteU16(uint16(len(str)))
-	}
-	w.buffer.WriteString(str)
-}
-
-func (w *DataWriter) Bytes() []byte {
-	return w.buffer.Bytes()
-}
