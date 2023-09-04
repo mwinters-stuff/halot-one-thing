@@ -49,3 +49,9 @@
 
 Request: OPTIONS rtsp://192.168.1.53:554/ch0_0 RTSP/1.0\r\n
 
+
+
+cube.cxdlp","initExposure":"40","layerThickness":"0.05","printExposure":"3","printHeight":"6","printRemainTime":"5144","printStatus":"PRINT_STOP","resin":"","sliceLayerCount":"480"}
+13:40:09 > {"cmd":"GET_PRINT_STATUS","token":"kz4M32rFVvI="}
+13:40:04 < {"bottomExposureNum":"2","cmd":"GET_PRINT_STATUS","curSliceLayer":"50","delayLight":"4","eleSpeed":"2","filename":"_resin-saver-cube.cxdlp","initExposure":"40","layerThickness":"0.05","printExposure":"3","printHeight":"6","printRemainTime":"5144","printStatus":"PRINT_STOPING","resin":"","sliceLayerCount":"480"}
+

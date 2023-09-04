@@ -42,6 +42,9 @@ func NewServerAPI(spec *loads.Document) *ServerAPI {
 
 		JSONProducer: runtime.JSONProducer(),
 
+		GetPrinterStatusHandler: GetPrinterStatusHandlerFunc(func(params GetPrinterStatusParams) middleware.Responder {
+			return middleware.NotImplemented("operation GetPrinterStatus has not yet been implemented")
+		}),
 		GetVersionHandler: GetVersionHandlerFunc(func(params GetVersionParams) middleware.Responder {
 			return middleware.NotImplemented("operation GetVersion has not yet been implemented")
 		}),
@@ -81,6 +84,8 @@ type ServerAPI struct {
 	//   - application/json
 	JSONProducer runtime.Producer
 
+	// GetPrinterStatusHandler sets the operation handler for the get printer status operation
+	GetPrinterStatusHandler GetPrinterStatusHandler
 	// GetVersionHandler sets the operation handler for the get version operation
 	GetVersionHandler GetVersionHandler
 
@@ -160,6 +165,9 @@ func (o *ServerAPI) Validate() error {
 		unregistered = append(unregistered, "JSONProducer")
 	}
 
+	if o.GetPrinterStatusHandler == nil {
+		unregistered = append(unregistered, "GetPrinterStatusHandler")
+	}
 	if o.GetVersionHandler == nil {
 		unregistered = append(unregistered, "GetVersionHandler")
 	}
@@ -251,6 +259,10 @@ func (o *ServerAPI) initHandlerCache() {
 		o.handlers = make(map[string]map[string]http.Handler)
 	}
 
+	if o.handlers["GET"] == nil {
+		o.handlers["GET"] = make(map[string]http.Handler)
+	}
+	o.handlers["GET"]["/printer-status"] = NewGetPrinterStatus(o.context, o.GetPrinterStatusHandler)
 	if o.handlers["GET"] == nil {
 		o.handlers["GET"] = make(map[string]http.Handler)
 	}

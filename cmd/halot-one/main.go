@@ -6,6 +6,7 @@ import (
 
 	"github.com/go-openapi/loads"
 	"github.com/go-openapi/runtime/middleware"
+	"github.com/mwinters-stuff/halo-one-thing/gen/models"
 	"github.com/mwinters-stuff/halo-one-thing/gen/restapi"
 	"github.com/mwinters-stuff/halo-one-thing/gen/restapi/operations"
 )
@@ -32,7 +33,7 @@ func main() {
 	// TODO: Set Handle
 	api.GetVersionHandler = operations.GetVersionHandlerFunc(
 		func(gvp operations.GetVersionParams) middleware.Responder {
-			payload := operations.GetVersionOKBody{
+			payload := models.Version{
 				Version: "1.0.0",
 			}
 			return operations.NewGetVersionOK().WithPayload(&payload)

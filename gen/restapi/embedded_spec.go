@@ -24,6 +24,28 @@ func init() {
     "version": "1.0.0"
   },
   "paths": {
+    "/printer-status": {
+      "get": {
+        "produces": [
+          "application/json"
+        ],
+        "operationId": "getPrinterStatus",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {
+              "$ref": "#/definitions/printer_status"
+            }
+          },
+          "409": {
+            "description": "Failed",
+            "schema": {
+              "$ref": "#/definitions/error"
+            }
+          }
+        }
+      }
+    },
     "/version": {
       "get": {
         "produces": [
@@ -32,16 +54,131 @@ func init() {
         "operationId": "getVersion",
         "responses": {
           "200": {
-            "description": "returns halot-one printer software version",
+            "description": "OK",
             "schema": {
-              "type": "object",
-              "properties": {
-                "Version": {
-                  "type": "string"
-                }
-              }
+              "$ref": "#/definitions/version"
+            }
+          },
+          "409": {
+            "description": "Failed",
+            "schema": {
+              "$ref": "#/definitions/error"
             }
           }
+        }
+      }
+    }
+  },
+  "definitions": {
+    "error": {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "integer",
+          "format": "int64"
+        },
+        "fields": {
+          "type": "string"
+        },
+        "message": {
+          "type": "string"
+        }
+      }
+    },
+    "message_command": {
+      "type": "object",
+      "properties": {
+        "Cmd": {
+          "type": "string"
+        }
+      }
+    },
+    "message_command_token": {
+      "allOf": [
+        {
+          "$ref": "#/definitions/message_command"
+        },
+        {
+          "type": "object",
+          "properties": {
+            "Token": {
+              "type": "string"
+            }
+          }
+        }
+      ]
+    },
+    "printer_status": {
+      "allOf": [
+        {
+          "$ref": "#/definitions/message_command"
+        },
+        {
+          "type": "object",
+          "required": [
+            "BottomExposureNum",
+            "CurSliceLayer",
+            "DelayLight",
+            "EleSpeed",
+            "Filename",
+            "InitExposure",
+            "LayerThickness",
+            "PrintExposure",
+            "PrintHeight",
+            "PrintRemainTime",
+            "PrintStatus",
+            "Resin",
+            "SliceLayerCount"
+          ],
+          "properties": {
+            "BottomExposureNum": {
+              "type": "string"
+            },
+            "CurSliceLayer": {
+              "type": "string"
+            },
+            "DelayLight": {
+              "type": "string"
+            },
+            "EleSpeed": {
+              "type": "string"
+            },
+            "Filename": {
+              "type": "string"
+            },
+            "InitExposure": {
+              "type": "string"
+            },
+            "LayerThickness": {
+              "type": "string"
+            },
+            "PrintExposure": {
+              "type": "string"
+            },
+            "PrintHeight": {
+              "type": "string"
+            },
+            "PrintRemainTime": {
+              "type": "string"
+            },
+            "PrintStatus": {
+              "type": "string"
+            },
+            "Resin": {
+              "type": "string"
+            },
+            "SliceLayerCount": {
+              "type": "string"
+            }
+          }
+        }
+      ]
+    },
+    "version": {
+      "type": "object",
+      "properties": {
+        "Version": {
+          "type": "string"
         }
       }
     }
@@ -54,6 +191,28 @@ func init() {
     "version": "1.0.0"
   },
   "paths": {
+    "/printer-status": {
+      "get": {
+        "produces": [
+          "application/json"
+        ],
+        "operationId": "getPrinterStatus",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {
+              "$ref": "#/definitions/printer_status"
+            }
+          },
+          "409": {
+            "description": "Failed",
+            "schema": {
+              "$ref": "#/definitions/error"
+            }
+          }
+        }
+      }
+    },
     "/version": {
       "get": {
         "produces": [
@@ -62,16 +221,131 @@ func init() {
         "operationId": "getVersion",
         "responses": {
           "200": {
-            "description": "returns halot-one printer software version",
+            "description": "OK",
             "schema": {
-              "type": "object",
-              "properties": {
-                "Version": {
-                  "type": "string"
-                }
-              }
+              "$ref": "#/definitions/version"
+            }
+          },
+          "409": {
+            "description": "Failed",
+            "schema": {
+              "$ref": "#/definitions/error"
             }
           }
+        }
+      }
+    }
+  },
+  "definitions": {
+    "error": {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "integer",
+          "format": "int64"
+        },
+        "fields": {
+          "type": "string"
+        },
+        "message": {
+          "type": "string"
+        }
+      }
+    },
+    "message_command": {
+      "type": "object",
+      "properties": {
+        "Cmd": {
+          "type": "string"
+        }
+      }
+    },
+    "message_command_token": {
+      "allOf": [
+        {
+          "$ref": "#/definitions/message_command"
+        },
+        {
+          "type": "object",
+          "properties": {
+            "Token": {
+              "type": "string"
+            }
+          }
+        }
+      ]
+    },
+    "printer_status": {
+      "allOf": [
+        {
+          "$ref": "#/definitions/message_command"
+        },
+        {
+          "type": "object",
+          "required": [
+            "BottomExposureNum",
+            "CurSliceLayer",
+            "DelayLight",
+            "EleSpeed",
+            "Filename",
+            "InitExposure",
+            "LayerThickness",
+            "PrintExposure",
+            "PrintHeight",
+            "PrintRemainTime",
+            "PrintStatus",
+            "Resin",
+            "SliceLayerCount"
+          ],
+          "properties": {
+            "BottomExposureNum": {
+              "type": "string"
+            },
+            "CurSliceLayer": {
+              "type": "string"
+            },
+            "DelayLight": {
+              "type": "string"
+            },
+            "EleSpeed": {
+              "type": "string"
+            },
+            "Filename": {
+              "type": "string"
+            },
+            "InitExposure": {
+              "type": "string"
+            },
+            "LayerThickness": {
+              "type": "string"
+            },
+            "PrintExposure": {
+              "type": "string"
+            },
+            "PrintHeight": {
+              "type": "string"
+            },
+            "PrintRemainTime": {
+              "type": "string"
+            },
+            "PrintStatus": {
+              "type": "string"
+            },
+            "Resin": {
+              "type": "string"
+            },
+            "SliceLayerCount": {
+              "type": "string"
+            }
+          }
+        }
+      ]
+    },
+    "version": {
+      "type": "object",
+      "properties": {
+        "Version": {
+          "type": "string"
         }
       }
     }
